@@ -2,6 +2,60 @@
 
 Resume Maker 是纯前端 Vite 应用，生产构建输出在 `dist/`，可部署到任意静态站点托管平台。项目使用 Hash 路由，简历编辑地址形如 `/#/resume/<id>`，因此不需要 SPA 回退重写。
 
+## 0. 拉取后的一键启动
+
+### Windows
+
+双击仓库根目录的 `start-resume.cmd`，或在 PowerShell 中执行：
+
+```powershell
+.\start-resume.cmd
+```
+
+脚本会检查 Node.js 版本。电脑尚未安装兼容版本时，会调用 `winget` 安装 Node.js LTS；随后使用仓库内的 `.npm-cache` 自动执行 `npm install`、完整测试、生产构建，并在 `http://127.0.0.1:4173/` 启动本地生产预览。该脚本可安全重复运行；CI 和 Docker 仍使用严格的 `npm ci`。
+
+只安装、测试和构建，不启动服务：
+
+```powershell
+.\scripts\setup-and-run.ps1 -NoServe
+```
+
+跳过浏览器测试但仍完成依赖安装和生产构建：
+
+```powershell
+.\scripts\setup-and-run.ps1 -SkipTests -NoServe
+```
+
+### macOS / Linux
+
+先安装 Node.js 22 LTS，然后执行：
+
+```bash
+chmod +x start-resume.sh
+./start-resume.sh
+```
+
+### Docker / 服务器
+
+服务器只需预先安装 Docker。拉取仓库后执行：
+
+```bash
+docker compose up --build -d
+```
+
+Docker 会在 Node.js 22 构建阶段运行 `npm ci` 和生产构建，再将 `dist/` 交给 Nginx。默认地址为 `http://服务器地址:8080/`。
+
+常用维护命令：
+
+```bash
+docker compose logs -f
+docker compose restart
+docker compose down
+git pull && docker compose up --build -d
+```
+
+`.dockerignore` 会排除 `private/`、本地环境文件、构建输出和个人资料目录，避免私有简历进入镜像上下文。
+
 ## 1. 部署前检查
 
 在项目根目录执行：
@@ -29,7 +83,7 @@ npm run preview
 
 ## 2. 创建安全的公开仓库
 
-当前本地 `master` 历史曾出现过个人简历备份，**不要将 `master` 推送到公开仓库**。请只发布无个人数据历史的 `codex/open-source` 分支。
+公开仓库的 `main` 已经是无个人数据历史的发布分支。维护者本机若仍保留带私有历史的 `master`，请继续只发布 `codex/open-source`，不要将私有分支推送到公开仓库。
 
 1. 在 GitHub 新建一个空仓库，不要自动创建 README、`.gitignore` 或 License。
 2. 在本地项目根目录添加远程地址：

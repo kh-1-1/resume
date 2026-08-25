@@ -29,6 +29,45 @@ Vite、React、TypeScript、Tailwind CSS、React Hook Form、Zod、Zustand、Dex
 
 需要 Node.js 20.19+ 或 22.12+。
 
+### Windows 一键启动
+
+拉取仓库后直接双击根目录的 `start-resume.cmd`。脚本会：
+
+1. 检查 Node.js，缺失时通过 Windows Package Manager 安装 Node.js LTS。
+2. 使用 `npm install` 按锁文件安装全部依赖，可安全重复运行。
+3. 运行代码检查、生产构建和浏览器测试。
+4. 启动本地生产预览并打开 `http://127.0.0.1:4173/`。
+
+命令行也可以执行：
+
+```powershell
+.\start-resume.cmd
+```
+
+macOS 或 Linux：
+
+```bash
+chmod +x start-resume.sh
+./start-resume.sh
+```
+
+已经安装 Node.js 时，也可使用：
+
+```bash
+npm run setup
+npm run dev
+```
+
+### Docker 一键部署
+
+已安装 Docker 的电脑或服务器，在仓库根目录执行：
+
+```bash
+docker compose up --build -d
+```
+
+访问 `http://127.0.0.1:8080/`。镜像会自行安装 Node.js 依赖、构建前端，并由 Nginx 提供静态服务。
+
 ```bash
 npm install
 npm run dev
@@ -47,6 +86,9 @@ npm test
 ## 部署
 
 项目可部署到 GitHub Pages、Vercel、Netlify、Cloudflare Pages 或任意静态文件服务。仓库已包含 GitHub Pages 自动部署工作流。
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fkh-1-1%2Fresume)
+[![Deploy to Netlify](https://www.netlify.com/img/deploy/button.svg)](https://app.netlify.com/start/deploy?repository=https://github.com/kh-1-1/resume)
 
 完整步骤、子路径配置、隐私检查和部署后验收见 [DEPLOYMENT.md](./DEPLOYMENT.md)。
 

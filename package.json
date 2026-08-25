@@ -9,10 +9,12 @@
   },
   "type": "module",
   "scripts": {
+    "setup": "npm install && npm test",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
     "preview": "vite preview",
+    "deploy:local": "npm run build && vite preview --host 0.0.0.0 --port 4173",
     "test": "npm run lint && npm run build && npm run test:browser",
     "test:browser": "node verify-interactions.cjs"
   },
