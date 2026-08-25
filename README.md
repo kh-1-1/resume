@@ -44,6 +44,12 @@ npm test
 
 该命令会依次执行静态检查、TypeScript/生产构建和 Playwright 浏览器验收。浏览器测试覆盖列表操作、键盘编辑、自动保存、多页预览、JSON 导入导出、移动端布局和打印 PDF。
 
+## 部署
+
+项目可部署到 GitHub Pages、Vercel、Netlify、Cloudflare Pages 或任意静态文件服务。仓库已包含 GitHub Pages 自动部署工作流。
+
+完整步骤、子路径配置、隐私检查和部署后验收见 [DEPLOYMENT.md](./DEPLOYMENT.md)。
+
 ## 本机私有测试数据
 
 仓库已忽略 `private/` 和 `*.local`。需要在开发环境恢复自己的本机备份时，可以：

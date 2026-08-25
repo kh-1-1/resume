@@ -16,6 +16,7 @@ tmp
 *.local
 private/
 .codex-remote-attachments/
+.vercel/
 %SystemDrive%/
 个人情况/
 product-design-audit-*/
