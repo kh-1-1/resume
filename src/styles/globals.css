@@ -1,0 +1,200 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+}
+
+:root {
+  --background: #f7f8fb;
+  --foreground: #16181d;
+  --card: #ffffff;
+  --card-foreground: #16181d;
+  --popover: #ffffff;
+  --popover-foreground: #16181d;
+  --primary: #1f6f68;
+  --primary-foreground: #ffffff;
+  --secondary: #edf1f5;
+  --secondary-foreground: #27313a;
+  --muted: #edf1f5;
+  --muted-foreground: #66717d;
+  --accent: #d17a22;
+  --accent-foreground: #ffffff;
+  --destructive: #c73535;
+  --destructive-foreground: #ffffff;
+  --border: #d9e0e8;
+  --input: #d9e0e8;
+  --ring: #1f6f68;
+  --radius: 8px;
+  color: var(--foreground);
+  background: var(--background);
+  font-family:
+    Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    "Microsoft YaHei", sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-width: 320px;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.75), rgba(247, 248, 251, 0)),
+    var(--background);
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+.form-section {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+}
+
+.resume-page {
+  width: 210mm;
+  min-height: 297mm;
+  box-sizing: border-box;
+  overflow: visible;
+  background: #ffffff;
+  color: #111827;
+  font-family:
+    "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC",
+    "Source Han Sans SC", sans-serif;
+  box-shadow: 0 24px 70px rgba(28, 38, 49, 0.16);
+}
+
+[data-resume-content] {
+  font-family:
+    "Microsoft YaHei UI", "Microsoft YaHei", "PingFang SC", "Noto Sans CJK SC",
+    "Source Han Sans SC", sans-serif;
+}
+
+.resume-print-source {
+  position: absolute;
+  left: -10000px;
+  top: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.resume-screen-pages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: 210mm;
+  transform-origin: left top;
+}
+
+.resume-screen-stage {
+  position: relative;
+  flex: none;
+}
+
+.resume-screen-page {
+  position: relative;
+  height: 297mm;
+  min-height: 297mm;
+  overflow: hidden;
+}
+
+.resume-page-slice {
+  width: 210mm;
+  min-height: 297mm;
+  transform-origin: left top;
+}
+
+.preview-page-count {
+  position: absolute;
+  right: 4mm;
+  bottom: 4mm;
+  border-radius: 999px;
+  background: rgba(17, 24, 39, 0.72);
+  color: #ffffff;
+  font-size: 11px;
+  line-height: 1;
+  padding: 5px 7px;
+  pointer-events: none;
+}
+
+.resume-preview-editing [data-inline-editable="true"] {
+  min-width: 1ch;
+  scroll-margin-top: 7rem;
+  border-radius: 2px;
+  cursor: text;
+  outline: 1px solid transparent;
+  outline-offset: 1px;
+  transition: background-color 120ms ease, outline-color 120ms ease;
+}
+
+.resume-preview-editing [data-inline-editable="true"]:hover {
+  background: rgba(31, 111, 104, 0.08);
+  outline-color: rgba(31, 111, 104, 0.28);
+}
+
+.resume-preview-editing [data-inline-editable="true"]:focus {
+  background: rgba(255, 255, 255, 0.94);
+  outline-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(31, 111, 104, 0.12);
+}
+
+[data-inline-multiline="true"] {
+  white-space: pre-wrap;
+}
+
+.print-preserve-color {
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.scrollbar-thin {
+  scrollbar-color: #b8c1cc transparent;
+  scrollbar-width: thin;
+}

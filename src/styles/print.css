@@ -1,0 +1,53 @@
+@page {
+  size: 210mm 297mm;
+  margin: 0;
+}
+
+@media print {
+  html,
+  body {
+    width: 210mm;
+    min-height: 297mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    background: #ffffff !important;
+  }
+
+  #root {
+    width: 210mm;
+    min-height: 297mm;
+    overflow: visible !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  .resume-page,
+  .resume-page * {
+    visibility: visible;
+  }
+
+  .resume-page {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm !important;
+    min-height: 297mm !important;
+    margin: 0;
+    overflow: visible !important;
+    box-shadow: none !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .resume-print-source {
+    visibility: visible !important;
+    pointer-events: auto;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+}

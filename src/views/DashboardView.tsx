@@ -1,0 +1,355 @@
+import { useEffect, useRef, useState } from "react"
+import { useLiveQuery } from "dexie-react-hooks"
+import { Database, Download, FilePlus2, MoreHorizontal, Upload } from "lucide-react"
+import { ResumeCard } from "@/components/dashboard/ResumeCard"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { useDropdownMenu } from "@/components/ui/useDropdownMenu"
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
+import { resumeRepo } from "@/db/resumeRepo"
+import type { Resume } from "@/types/resume"
+import { cloneResume, createEmptyResume, createSampleResume } from "@/utils/createEmptyResume"
+import { createResumeBackup, downloadJson, safeFileName } from "@/utils/exportJson"
+import { importResumesFromFile } from "@/utils/importJson"
+import { seedLocalPrivateResumes } from "@/utils/seedLocalPrivateResumes"
+
+function goToResume(resumeId: string) {
+  window.location.hash = `/resume/${encodeURIComponent(resumeId)}`
+}
+
+function exportFileName(prefix: string) {
+  return `${prefix}-${new Date().toISOString().slice(0, 10)}.json`
+}
+
+type DashboardActionsMenuProps = {
+  onCreateSample: () => void
+  onImport: () => void
+  onExportAll: () => void
+  onRestoreLocal?: () => void
+}
+
+function DashboardActionsMenu({ onCreateSample, onImport, onExportAll, onRestoreLocal }: DashboardActionsMenuProps) {
+  const [open, setOpen] = useState(false)
+  const { containerRef, triggerRef, handleKeyDown } = useDropdownMenu(open, setOpen)
+
+  function run(action: () => void) {
+    setOpen(false)
+    action()
+  }
+
+  return (
+    <div
+      ref={containerRef}
+      className="relative"
+      onBlur={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setOpen(false)
+        }
+      }}
+      onKeyDown={handleKeyDown}
+    >
+      <Button
+        ref={triggerRef}
+        type="button"
+        size="sm"
+        variant="outline"
+        className="w-9 bg-white px-0 sm:w-auto sm:px-3"
+        title="更多操作"
+        aria-label="更多操作"
+        aria-expanded={open}
+        aria-haspopup="menu"
+        onClick={() => setOpen((value) => !value)}
+      >
+        <MoreHorizontal />
+        <span className="hidden sm:inline">更多</span>
+      </Button>
+      {open ? (
+        <div
+          role="menu"
+          className="absolute right-0 top-[calc(100%+0.4rem)] z-30 w-44 overflow-hidden rounded-md border border-border bg-white p-1 shadow-lg"
+        >
+          <button
+            type="button"
+            role="menuitem"
+            className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-secondary"
+            onClick={() => run(onCreateSample)}
+          >
+            <FilePlus2 className="size-4" />
+            创建示例简历
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-secondary"
+            onClick={() => run(onImport)}
+          >
+            <Upload className="size-4" />
+            导入 JSON
+          </button>
+          <button
+            type="button"
+            role="menuitem"
+            className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-secondary"
+            onClick={() => run(onExportAll)}
+          >
+            <Download className="size-4" />
+            导出全部
+          </button>
+          {onRestoreLocal ? (
+            <button
+              type="button"
+              role="menuitem"
+              className="flex w-full items-center gap-2 rounded-sm px-3 py-2 text-left text-sm hover:bg-secondary"
+              onClick={() => run(onRestoreLocal)}
+            >
+              <Database className="size-4" />
+              恢复本机简历
+            </button>
+          ) : null}
+        </div>
+      ) : null}
+    </div>
+  )
+}
+
+export function DashboardView() {
+  const resumes = useLiveQuery(() => resumeRepo.list(), [], null)
+  const importInputRef = useRef<HTMLInputElement>(null)
+  const [dialogMessage, setDialogMessage] = useState("")
+  const [dialogOpen, setDialogOpen] = useState(false)
+  const resumeCount = resumes?.length ?? 0
+
+  function showMessage(message: string) {
+    setDialogMessage(message)
+    setDialogOpen(true)
+  }
+
+  async function handleCreateResume() {
+    try {
+      const resume = createEmptyResume("我的简历")
+
+      await resumeRepo.save(resume)
+      goToResume(resume.id)
+    } catch (error) {
+      showMessage(error instanceof Error ? `新建失败：${error.message}` : "新建简历失败。")
+    }
+  }
+
+  async function handleCreateSampleResume() {
+    try {
+      const resume = createSampleResume()
+
+      await resumeRepo.save(resume)
+      goToResume(resume.id)
+    } catch (error) {
+      showMessage(error instanceof Error ? `创建示例失败：${error.message}` : "创建示例失败。")
+    }
+  }
+
+  useEffect(() => {
+    if (resumes === null) {
+      return
+    }
+
+    if (resumes.length > 0) {
+      return
+    }
+
+    const seedKey = "resume-maker-default-seeded-v2"
+
+    if (window.localStorage.getItem(seedKey)) {
+      return
+    }
+
+    window.localStorage.setItem(seedKey, "true")
+    void resumeRepo.save(createSampleResume()).catch((error) => {
+      window.localStorage.removeItem(seedKey)
+      showMessage(error instanceof Error ? `初始化失败：${error.message}` : "初始化示例简历失败。")
+    })
+  }, [resumes])
+
+  useEffect(() => {
+    const hasPlaceholderShell = resumes?.some(
+      (resume) => resume.title.trim() === "未命名简历" && !resume.basics.name.trim(),
+    )
+
+    if (!hasPlaceholderShell) {
+      return
+    }
+
+    void seedLocalPrivateResumes().catch((error) => {
+      showMessage(error instanceof Error ? `自动恢复失败：${error.message}` : "自动恢复本机简历失败。")
+    })
+  }, [resumes])
+
+  function handleExportAll() {
+    if (!resumes?.length) {
+      setDialogMessage("当前没有可导出的简历。")
+      setDialogOpen(true)
+      return
+    }
+
+    downloadJson(createResumeBackup(resumes), exportFileName("resume-maker-backup"))
+  }
+
+  function handleExportResume(resume: Resume) {
+    downloadJson(
+      createResumeBackup([resume]),
+      exportFileName(safeFileName(resume.title || resume.basics.name || "resume")),
+    )
+  }
+
+  async function handleDeleteResume(resume: Resume) {
+    const confirmed = window.confirm(`确定删除「${resume.title || "未命名简历"}」吗？`)
+
+    if (!confirmed) {
+      return
+    }
+
+    try {
+      await resumeRepo.remove(resume.id)
+    } catch (error) {
+      showMessage(error instanceof Error ? `删除失败：${error.message}` : "删除简历失败。")
+    }
+  }
+
+  async function handleDuplicateResume(resume: Resume) {
+    try {
+      const duplicated = cloneResume(resume)
+
+      await resumeRepo.save(duplicated)
+      goToResume(duplicated.id)
+    } catch (error) {
+      showMessage(error instanceof Error ? `复制失败：${error.message}` : "复制简历失败。")
+    }
+  }
+
+  async function handleRestoreLocalResumes() {
+    try {
+      const result = await seedLocalPrivateResumes()
+
+      showMessage(
+        result.restored
+          ? `已恢复 ${result.restored} 份本机简历。`
+          : `本机备份中的 ${result.total} 份简历均已存在。`,
+      )
+    } catch (error) {
+      showMessage(error instanceof Error ? `恢复失败：${error.message}` : "恢复本机简历失败。")
+    }
+  }
+
+  async function handleImport(event: React.ChangeEvent<HTMLInputElement>) {
+    const input = event.currentTarget
+    const file = input.files?.[0]
+
+    if (!file) {
+      return
+    }
+
+    try {
+      const imported = await importResumesFromFile(file)
+      await resumeRepo.saveMany(imported)
+      showMessage(`已导入 ${imported.length} 份简历。`)
+    } catch (error) {
+      showMessage(error instanceof Error ? error.message : "导入失败，请检查 JSON 文件。")
+    } finally {
+      input.value = ""
+    }
+  }
+
+  return (
+    <div className="min-h-screen px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
+      <main className="mx-auto flex max-w-6xl flex-col gap-5">
+        <header className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white/88 px-4 py-3 shadow-sm sm:px-5 sm:py-4">
+          <div className="min-w-0">
+            <div className="flex min-w-0 items-center gap-2">
+              <h1 className="truncate text-xl font-semibold tracking-normal text-foreground sm:text-2xl">
+                简历生成器
+              </h1>
+              <Badge variant="secondary" className="shrink-0">
+                {resumeCount} 份
+              </Badge>
+            </div>
+            <p className="mt-1 hidden max-w-2xl text-sm text-muted-foreground sm:block">
+              本地保存 · A4 实时预览 · 打印 PDF
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-2">
+            <Button type="button" size="sm" onClick={handleCreateResume}>
+              <FilePlus2 />
+              <span className="sm:hidden">新建</span>
+              <span className="hidden sm:inline">新建简历</span>
+            </Button>
+            <DashboardActionsMenu
+              onCreateSample={() => void handleCreateSampleResume()}
+              onImport={() => importInputRef.current?.click()}
+              onExportAll={handleExportAll}
+              onRestoreLocal={
+                import.meta.env.DEV && import.meta.env.VITE_ENABLE_PRIVATE_RESUME_SEED === "true"
+                  ? () => void handleRestoreLocalResumes()
+                  : undefined
+              }
+            />
+            <input
+              ref={importInputRef}
+              type="file"
+              className="hidden"
+              accept="application/json,.json"
+              onChange={handleImport}
+            />
+          </div>
+        </header>
+
+        {resumes === null ? (
+          <div className="rounded-lg border border-border bg-white px-5 py-10 text-center text-sm text-muted-foreground">
+            正在读取本地数据库...
+          </div>
+        ) : resumes.length ? (
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+            {resumes.map((resume) => (
+              <ResumeCard
+                key={resume.id}
+                resume={resume}
+                onOpen={(item) => goToResume(item.id)}
+                onDelete={handleDeleteResume}
+                onDuplicate={handleDuplicateResume}
+                onExport={handleExportResume}
+              />
+            ))}
+          </section>
+        ) : (
+          <section className="rounded-lg border border-dashed border-border bg-white/76 px-6 py-16 text-center">
+            <Database className="mx-auto size-10 text-primary" />
+            <h2 className="mt-4 text-xl font-semibold tracking-normal text-foreground">还没有简历</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
+              新建一份简历后，数据会自动保存在当前浏览器的 IndexedDB 里。
+            </p>
+            <Button type="button" className="mt-6" onClick={handleCreateResume}>
+              <FilePlus2 />
+              新建第一份简历
+            </Button>
+            <Button type="button" variant="outline" className="mt-3" onClick={handleCreateSampleResume}>
+              <FilePlus2 />
+              先看示例简历
+            </Button>
+          </section>
+        )}
+      </main>
+
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>提示</DialogTitle>
+            <DialogDescription>{dialogMessage}</DialogDescription>
+          </DialogHeader>
+        </DialogContent>
+      </Dialog>
+    </div>
+  )
+}
