@@ -47,13 +47,19 @@ function SectionTitle({
   onEdit?: (path: string, value: string) => void
 }) {
   return (
-    <div className="flex items-center gap-[2.5mm]" style={{ marginBottom: "var(--classic-heading-gap)" }}>
-      <h2 className="shrink-0 text-[0.5625em] font-bold tracking-[0.12em] text-[var(--resume-accent)]">
+    <div
+      className="flex items-center border-l-[1.4mm] px-[2.4mm] py-[1.15mm]"
+      style={{
+        marginBottom: "var(--classic-heading-gap)",
+        borderLeftColor: "var(--resume-accent)",
+        backgroundColor: "color-mix(in srgb, var(--resume-accent) 9%, white)",
+      }}
+    >
+      <h2 className="shrink-0 text-[0.59em] font-bold tracking-[0.08em] text-[var(--resume-accent)]">
         <InlineEditableText enabled={editable} path={editPath} value={title} onCommit={onEdit}>
           {title}
         </InlineEditableText>
       </h2>
-      <div className="h-px flex-1 bg-stone-300" />
     </div>
   )
 }
@@ -72,7 +78,7 @@ function Section({
   onEdit?: (path: string, value: string) => void
 }) {
   return (
-    <section className="border-t border-stone-200 pt-[var(--classic-section-padding)] first:border-t-0 first:pt-0">
+    <section className="pt-[var(--classic-section-padding)] first:pt-0">
       <SectionTitle title={title} editPath={editPath} editable={editable} onEdit={onEdit} />
       <div className="flex flex-col" style={{ gap: "var(--classic-entry-gap)" }}>{children}</div>
     </section>
@@ -106,14 +112,19 @@ function Entry({ title, subtitle, inlineSubtitle = true, meta, children, editPat
       <div className="grid grid-cols-[1fr_auto] gap-[5mm]">
         <div className="min-w-0">
           {inlineSubtitle ? (
-            <div className="flex min-w-0 items-baseline gap-[2.5mm]">
-              <h3 className="shrink-0 text-[0.675em] font-bold leading-snug text-stone-950">
+            <div className="grid min-w-0 grid-cols-[minmax(26mm,auto)_minmax(0,1fr)_auto] items-baseline gap-[3mm]">
+              <h3 className="min-w-0 text-[0.675em] font-bold leading-snug text-[var(--resume-accent)]">
                 <InlineEditableText enabled={editable} path={editPath} value={title} onCommit={onEdit}>
                   {title}
                 </InlineEditableText>
               </h3>
               {subtitle ? (
-                <p className="min-w-0 truncate text-[0.5875em] leading-snug text-stone-950">{subtitle}</p>
+                <p className="min-w-0 truncate text-center text-[0.5875em] font-medium leading-snug text-stone-700">{subtitle}</p>
+              ) : <span />}
+              {meta ? (
+                <p className="shrink-0 text-right text-[0.575em] font-medium leading-snug text-stone-600">
+                  {meta}
+                </p>
               ) : null}
             </div>
           ) : (
@@ -129,7 +140,7 @@ function Entry({ title, subtitle, inlineSubtitle = true, meta, children, editPat
             </>
           )}
         </div>
-        {meta ? (
+        {!inlineSubtitle && meta ? (
           <p className="shrink-0 text-right text-[0.575em] leading-snug text-stone-950">
             {meta}
           </p>
@@ -165,7 +176,7 @@ function BulletList({
     <div
       role="list"
       data-classic-body-text
-      className="mt-[1.1mm] flex flex-col pl-[0.7mm] text-[0.594em] text-stone-950"
+      className="mt-[1.1mm] flex flex-col pl-[0.7mm] text-[0.594em] text-stone-900"
       style={{ gap: "var(--classic-body-gap)", lineHeight: "var(--classic-body-line-height)" }}
     >
       {visibleItems.map(({ item, index }) => (
@@ -301,9 +312,9 @@ export function ClassicTemplate({ resume, editable, onEdit }: TemplateProps) {
   const rootStyle = {
     "--resume-accent": design.accentColor,
     "--classic-page-padding-y": design.density === "compact" ? "7.5mm" : "10.5mm",
-    "--classic-main-gap": design.density === "compact" ? "3mm" : "4mm",
-    "--classic-section-padding": design.density === "compact" ? "2.3mm" : "3mm",
-    "--classic-heading-gap": design.density === "compact" ? "1.35mm" : "2mm",
+    "--classic-main-gap": design.density === "compact" ? "2.2mm" : "3.2mm",
+    "--classic-section-padding": design.density === "compact" ? "1.7mm" : "2.4mm",
+    "--classic-heading-gap": design.density === "compact" ? "1.45mm" : "1.9mm",
     "--classic-entry-gap": design.density === "compact" ? "2.15mm" : "2.8mm",
     "--classic-body-gap": design.density === "compact" ? "0.55mm" : "0.8mm",
     "--classic-body-line-height": design.density === "compact" ? "1.34" : "1.38",
@@ -329,7 +340,7 @@ export function ClassicTemplate({ resume, editable, onEdit }: TemplateProps) {
         paddingBottom: "var(--classic-page-padding-y)",
       }}
     >
-      <header className="border-b-[2px] pb-[3.2mm]" style={{ borderColor: design.accentColor }}>
+      <header className="border-b-[1.5px] pb-[3.2mm]" style={{ borderColor: design.accentColor }}>
         <div className="grid grid-cols-[auto_1fr_auto] items-center gap-[5mm]">
           {design.showPhoto && resume.basics.photo ? (
             <div
@@ -350,8 +361,8 @@ export function ClassicTemplate({ resume, editable, onEdit }: TemplateProps) {
             </div>
           ) : null}
           <div className="min-w-0">
-            <p className="mb-[1mm] text-[0.53125em] font-bold uppercase tracking-[0.24em] text-[var(--resume-accent)]">
-              个人简历
+            <p className="mb-[1mm] text-[0.5em] font-bold uppercase tracking-[0.2em] text-[var(--resume-accent)]">
+              RESUME
             </p>
             <h1 className="text-[1.5625em] font-bold leading-none tracking-normal text-stone-950">
               <InlineEditableText
@@ -376,7 +387,7 @@ export function ClassicTemplate({ resume, editable, onEdit }: TemplateProps) {
               </p>
             ) : null}
           </div>
-          <p className="max-w-[66mm] text-right text-[0.556em] leading-[1.5] text-stone-950">
+          <p className="max-w-[70mm] text-right text-[0.556em] font-medium leading-[1.55] text-stone-700">
             {profileItems.length ? profileItems.join(" · ") : "邮箱 · 电话 · 城市"}
           </p>
         </div>
@@ -554,7 +565,7 @@ export function ClassicTemplate({ resume, editable, onEdit }: TemplateProps) {
 
         {(resume.skills.length || resume.certificates.length) ? (
           <div
-            className={`grid gap-[7mm] border-t border-stone-200 pt-[var(--classic-section-padding)] ${
+            className={`grid gap-[7mm] pt-[var(--classic-section-padding)] ${
               resume.skills.length && resume.certificates.length ? "grid-cols-[0.9fr_1.1fr]" : "grid-cols-1"
             }`}
           >

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { Copy, Download, FileText, MoreHorizontal, Trash2 } from "lucide-react"
+import { CalendarClock, Copy, Download, FileText, Gauge, MoreHorizontal, Trash2 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
@@ -107,39 +107,57 @@ export function ResumeCard({ resume, onOpen, onDelete, onDuplicate, onExport }: 
 
   return (
     <Card
-      className="relative overflow-visible transition-colors hover:border-primary/50 hover:bg-white focus-within:border-primary/50"
+      className="group relative overflow-visible rounded-md border-[#d7e0e7] shadow-[0_3px_14px_rgba(20,39,57,0.06)] transition-[border-color,box-shadow,transform] hover:-translate-y-0.5 hover:border-[#9db2c2] hover:shadow-[0_12px_28px_rgba(20,39,57,0.11)] focus-within:border-[#2b706a]"
       data-resume-id={resume.id}
     >
+      <div
+        className="absolute inset-x-0 top-0 h-1 rounded-t-md"
+        style={{ backgroundColor: resume.templateId === "classic" ? resume.classicDesign.accentColor : resume.design.accentColor }}
+      />
       <button
         type="button"
-        className="flex w-full gap-4 p-4 pr-12 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+        className="flex min-h-48 w-full gap-5 p-5 pr-14 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
         aria-label={`编辑简历：${resume.title || displayName}`}
         onClick={openResume}
       >
         <ResumeThumbnail resume={resume} />
-        <span className="flex min-w-0 flex-1 flex-col">
-          <span className="min-w-0 truncate text-base font-semibold text-foreground">
+        <span className="flex min-w-0 flex-1 flex-col py-0.5">
+          <span className="min-w-0 truncate text-lg font-semibold leading-tight text-[#10263a]">
             {resume.title || "未命名简历"}
           </span>
-          <span className="mt-1 truncate text-sm text-muted-foreground">
+          <span className="mt-1.5 truncate text-sm text-[#657483]">
             {displayName}
             {resume.basics.jobTitle ? ` · ${resume.basics.jobTitle}` : ""}
           </span>
-          <span className="mt-2">
-            <Badge variant="secondary">{getTemplateName(resume.templateId)}</Badge>
+          <span className="mt-3 flex items-center gap-2">
+            <Badge className="border-[#d7e0e7] bg-[#eef3f6] text-[#31475a]">
+              {getTemplateName(resume.templateId)}模板
+            </Badge>
+            <span className="inline-flex items-center gap-1 text-xs text-[#657483]">
+              <FileText className="size-3.5" />
+              {analysis.estimatedPages} 页
+            </span>
           </span>
-          <span className="mt-auto flex items-center gap-2 pt-3 text-xs text-muted-foreground">
-            <FileText className="size-3.5" />
+          <span className="mt-auto flex items-center gap-1.5 pt-4 text-xs text-[#73818e]">
+            <CalendarClock className="size-3.5" />
             更新于 {formatDateTime(resume.updatedAt)}
           </span>
-          <span className="mt-2 flex flex-wrap gap-1.5">
-            <Badge variant="outline">完整度 {analysis.completion}%</Badge>
-            <Badge variant="outline">检查 {analysis.score}</Badge>
-            <Badge variant="outline">{analysis.estimatedPages} 页</Badge>
+          <span className="mt-3 grid grid-cols-[1fr_auto] items-center gap-3">
+            <span className="h-1.5 overflow-hidden rounded-full bg-[#e3e9ee]">
+              <span
+                className="block h-full rounded-full bg-[#2b706a]"
+                style={{ width: `${analysis.completion}%` }}
+              />
+            </span>
+            <span className="text-xs font-medium text-[#31475a]">完整度 {analysis.completion}%</span>
+          </span>
+          <span className="mt-2 inline-flex items-center gap-1.5 text-xs text-[#657483]">
+            <Gauge className="size-3.5" />
+            内容检查 {analysis.score}
           </span>
         </span>
       </button>
-      <div className="absolute right-3 top-3 z-20">
+      <div className="absolute right-3 top-4 z-20">
         <ResumeCardMenu
           resume={resume}
           onDelete={onDelete}

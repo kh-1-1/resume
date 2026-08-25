@@ -1,6 +1,15 @@
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { useLiveQuery } from "dexie-react-hooks"
-import { Database, Download, FilePlus2, MoreHorizontal, Upload } from "lucide-react"
+import {
+  Database,
+  Download,
+  FilePlus2,
+  FileText,
+  MoreHorizontal,
+  Search,
+  ShieldCheck,
+  Upload,
+} from "lucide-react"
 import { ResumeCard } from "@/components/dashboard/ResumeCard"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -59,7 +68,7 @@ function DashboardActionsMenu({ onCreateSample, onImport, onExportAll, onRestore
         type="button"
         size="sm"
         variant="outline"
-        className="w-9 bg-white px-0 sm:w-auto sm:px-3"
+        className="w-9 bg-white px-0 text-[#10263a] sm:w-auto sm:px-3"
         title="更多操作"
         aria-label="更多操作"
         aria-expanded={open}
@@ -123,7 +132,28 @@ export function DashboardView() {
   const importInputRef = useRef<HTMLInputElement>(null)
   const [dialogMessage, setDialogMessage] = useState("")
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
   const resumeCount = resumes?.length ?? 0
+  const visibleResumes = useMemo(() => {
+    const query = searchQuery.trim().toLocaleLowerCase()
+
+    if (!resumes) {
+      return []
+    }
+
+    return resumes
+      .filter((resume) => {
+        if (!query) {
+          return true
+        }
+
+        return [resume.title, resume.basics.name, resume.basics.jobTitle]
+          .join(" ")
+          .toLocaleLowerCase()
+          .includes(query)
+      })
+      .toSorted((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+  }, [resumes, searchQuery])
 
   function showMessage(message: string) {
     setDialogMessage(message)
@@ -264,24 +294,33 @@ export function DashboardView() {
   }
 
   return (
-    <div className="min-h-screen px-4 py-4 sm:px-6 sm:py-6 lg:px-8">
-      <main className="mx-auto flex max-w-6xl flex-col gap-5">
-        <header className="flex items-center justify-between gap-3 rounded-lg border border-border bg-white/88 px-4 py-3 shadow-sm sm:px-5 sm:py-4">
-          <div className="min-w-0">
-            <div className="flex min-w-0 items-center gap-2">
-              <h1 className="truncate text-xl font-semibold tracking-normal text-foreground sm:text-2xl">
-                简历生成器
-              </h1>
-              <Badge variant="secondary" className="shrink-0">
-                {resumeCount} 份
-              </Badge>
+    <div className="min-h-screen bg-[#f3f6f8]">
+      <header className="border-b border-[#203850] bg-[#10263a] text-white">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-4 sm:px-6 lg:px-8">
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-[#e29a45] text-[#10263a] shadow-sm">
+              <FileText className="size-5" strokeWidth={2.2} />
+            </span>
+            <div className="min-w-0">
+              <div className="flex min-w-0 items-center gap-2">
+                <h1 className="truncate text-xl font-semibold tracking-normal sm:text-2xl">简历工作台</h1>
+                <Badge className="shrink-0 border-white/16 bg-white/10 text-white">
+                  {resumeCount} 份
+                </Badge>
+              </div>
+              <p className="mt-0.5 hidden items-center gap-1.5 text-xs text-[#bed0df] sm:flex">
+                <ShieldCheck className="size-3.5 text-[#76c6ae]" />
+                内容仅保存在当前浏览器
+              </p>
             </div>
-            <p className="mt-1 hidden max-w-2xl text-sm text-muted-foreground sm:block">
-              本地保存 · A4 实时预览 · 打印 PDF
-            </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <Button type="button" size="sm" onClick={handleCreateResume}>
+            <Button
+              type="button"
+              size="sm"
+              className="bg-[#e29a45] text-[#10263a] hover:bg-[#efab5b]"
+              onClick={handleCreateResume}
+            >
               <FilePlus2 />
               <span className="sm:hidden">新建</span>
               <span className="hidden sm:inline">新建简历</span>
@@ -304,15 +343,37 @@ export function DashboardView() {
               onChange={handleImport}
             />
           </div>
-        </header>
+        </div>
+      </header>
+
+      <main className="mx-auto flex max-w-7xl flex-col gap-5 px-4 py-6 sm:px-6 sm:py-8 lg:px-8">
+        <section className="flex flex-col justify-between gap-4 border-b border-[#d7e0e7] pb-5 sm:flex-row sm:items-end">
+          <div>
+            <h2 className="text-xl font-semibold text-[#10263a]">我的简历</h2>
+            <p className="mt-1 text-sm text-[#657483]">选择一份继续编辑，或创建新的投递版本。</p>
+          </div>
+          {resumes?.length ? (
+            <label className="relative block w-full sm:w-72">
+              <span className="sr-only">搜索简历</span>
+              <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#73818e]" />
+              <input
+                type="search"
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="搜索标题、姓名或方向"
+                className="h-10 w-full rounded-md border border-[#cfd9e2] bg-white pl-9 pr-3 text-sm text-[#17212b] outline-none transition-colors placeholder:text-[#8995a0] focus:border-[#2b706a] focus:ring-2 focus:ring-[#2b706a]/15"
+              />
+            </label>
+          ) : null}
+        </section>
 
         {resumes === null ? (
-          <div className="rounded-lg border border-border bg-white px-5 py-10 text-center text-sm text-muted-foreground">
+          <div className="border border-[#d7e0e7] bg-white px-5 py-12 text-center text-sm text-[#657483]">
             正在读取本地数据库...
           </div>
-        ) : resumes.length ? (
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-            {resumes.map((resume) => (
+        ) : resumes.length && visibleResumes.length ? (
+          <section className="grid gap-5 lg:grid-cols-2">
+            {visibleResumes.map((resume) => (
               <ResumeCard
                 key={resume.id}
                 resume={resume}
@@ -323,21 +384,35 @@ export function DashboardView() {
               />
             ))}
           </section>
+        ) : resumes.length ? (
+          <section className="border border-dashed border-[#c6d2dc] bg-white px-6 py-14 text-center">
+            <Search className="mx-auto size-8 text-[#6f7f8c]" />
+            <h2 className="mt-3 text-lg font-semibold text-[#10263a]">没有找到匹配的简历</h2>
+            <button
+              type="button"
+              className="mt-2 text-sm font-medium text-[#1f6f68] hover:underline"
+              onClick={() => setSearchQuery("")}
+            >
+              清除搜索
+            </button>
+          </section>
         ) : (
-          <section className="rounded-lg border border-dashed border-border bg-white/76 px-6 py-16 text-center">
-            <Database className="mx-auto size-10 text-primary" />
-            <h2 className="mt-4 text-xl font-semibold tracking-normal text-foreground">还没有简历</h2>
-            <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-              新建一份简历后，数据会自动保存在当前浏览器的 IndexedDB 里。
+          <section className="border border-dashed border-[#c6d2dc] bg-white px-6 py-16 text-center">
+            <Database className="mx-auto size-10 text-[#1f6f68]" />
+            <h2 className="mt-4 text-xl font-semibold tracking-normal text-[#10263a]">还没有简历</h2>
+            <p className="mx-auto mt-2 max-w-md text-sm text-[#657483]">
+              新建一份简历后，内容会自动保存在当前浏览器。
             </p>
-            <Button type="button" className="mt-6" onClick={handleCreateResume}>
-              <FilePlus2 />
-              新建第一份简历
-            </Button>
-            <Button type="button" variant="outline" className="mt-3" onClick={handleCreateSampleResume}>
-              <FilePlus2 />
-              先看示例简历
-            </Button>
+            <div className="mt-6 flex flex-wrap justify-center gap-2">
+              <Button type="button" onClick={handleCreateResume}>
+                <FilePlus2 />
+                新建第一份简历
+              </Button>
+              <Button type="button" variant="outline" onClick={handleCreateSampleResume}>
+                <FilePlus2 />
+                查看示例
+              </Button>
+            </div>
           </section>
         )}
       </main>

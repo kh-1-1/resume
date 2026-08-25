@@ -396,6 +396,7 @@ async function main() {
     await originalCard.getByRole("menuitem", { name: "复制简历" }).click()
     await page.locator("[data-editor-panel]").waitFor()
     await page.getByRole("button", { name: "返回列表" }).click()
+    await page.waitForFunction(() => document.querySelectorAll("[data-resume-id]").length === 3)
     assert((await page.locator("[data-resume-id]").count()) === 3, "Resume duplication did not add a card.")
 
     const duplicateCard = page.locator("[data-resume-id]").filter({ hasText: "交互回归简历 副本" }).first()
